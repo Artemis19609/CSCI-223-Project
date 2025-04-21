@@ -1,5 +1,14 @@
 //Colson Combs
-//Used AI for the code but I do understand what each function and method precisely does,
+//Used AI for the code but I do understand what each function and method precisely does.
+Output of the code:
+***********************
+Eliminated: Charlie
+Winner: Bob
+Final Results:
+Alice: 2 votes
+Bob: 3 votes
+Charlie: 0 votes (eliminated)
+***********************
 
 
 import java.util.ArrayList;
