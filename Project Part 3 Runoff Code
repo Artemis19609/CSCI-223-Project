@@ -1,0 +1,143 @@
+//Colson Combs
+//Used AI for the code but I do understand what each function and method precisely does,
+
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+public class InstantRunoffVoting {
+    
+    // Main method - where the program starts
+    public static void main(String[] args) {
+        // 1. Set up candidates
+        String[] candidateNames = {"Alice", "Bob", "Charlie"};
+        readCandidatesList(candidateNames);
+
+        // 2. Create sample ballots (0=Alice, 1=Bob, 2=Charlie)
+        List<List<Integer>> inputBallots = Arrays.asList(
+            Arrays.asList(0, 1, 2),  // Voter 1: Alice > Bob > Charlie
+            Arrays.asList(1, 2, 0),  // Voter 2: Bob > Charlie > Alice
+            Arrays.asList(2, 1, 0),  // Voter 3: Charlie > Bob > Alice
+            Arrays.asList(0, 2, 1),  // Voter 4: Alice > Charlie > Bob
+            Arrays.asList(1, 0, 2)   // Voter 5: Bob > Alice > Charlie
+        );
+
+        // 3. Run the election
+        readBallots(inputBallots);
+        runElection();
+        displayResults();
+    }
+
+    // Data storage
+    private static List<Candidate> candidates = new ArrayList<>();  // All candidates
+    private static List<List<Integer>> ballots = new ArrayList<>();  // All votes
+
+    // 1. Create candidate list
+    public static List<Candidate> readCandidatesList(String[] candidateNames) {
+        candidates.clear();
+        for (String name : candidateNames) {
+            candidates.add(new Candidate(name));  // Create new candidate object
+        }
+        return candidates;
+    }
+
+    // 2. Store voting ballots
+    public static void readBallots(List<List<Integer>> inputBallots) {
+        ballots.clear();
+        ballots.addAll(inputBallots);  // Copy all votes
+    }
+
+    // 3. Count votes for current round
+    public static void countVotes() {
+        // Reset counts
+        for (Candidate candidate : candidates) {
+            candidate.resetVotes();
+        }
+
+        // Count valid votes
+        for (List<Integer> ballot : ballots) {
+            for (int choice : ballot) {
+                if (!candidates.get(choice).eliminated) {
+                    candidates.get(choice).addVote();  // Count top valid choice
+                    break;
+                }
+            }
+        }
+    }
+
+    // 4. Run election rounds until winner
+    public static void runElection() {
+        int totalVotes = ballots.size();
+        
+        while (true) {
+            countVotes();  // New round
+            
+            // Check for winner (>50%)
+            for (Candidate candidate : candidates) {
+                if (!candidate.eliminated && candidate.votes > totalVotes / 2) {
+                    System.out.println("Winner: " + candidate.name);
+                    return;
+                }
+            }
+
+            // Find active candidates
+            List<Candidate> activeCandidates = new ArrayList<>();
+            for (Candidate c : candidates) {
+                if (!c.eliminated) activeCandidates.add(c);
+            }
+
+            // If only one left, they win
+            if (activeCandidates.size() == 1) {
+                System.out.println("Winner: " + activeCandidates.get(0).name);
+                return;
+            }
+
+            // Find lowest vote count
+            int minVotes = Integer.MAX_VALUE;
+            for (Candidate c : activeCandidates) {
+                if (c.votes < minVotes) minVotes = c.votes;
+            }
+
+            // Eliminate weakest
+            for (Candidate c : activeCandidates) {
+                if (c.votes == minVotes) {
+                    c.eliminated = true;
+                    System.out.println("Eliminated: " + c.name);
+                }
+            }
+        }
+    }
+
+    // 5. Show final counts
+    public static void displayResults() {
+        System.out.println("Final Results:");
+        for (Candidate candidate : candidates) {
+            System.out.println(candidate.name + ": " + candidate.votes + " votes" + 
+                (candidate.eliminated ? " (eliminated)" : ""));
+        }
+    }
+}
+
+// Helper class - stores candidate info
+class Candidate {
+    String name;      // Candidate name
+    int votes;        // Current vote count
+    boolean eliminated;  // Track if still in race
+
+    public Candidate(String name) {
+        this.name = name;
+        this.votes = 0;
+        this.eliminated = false;
+    }
+
+    // Add 1 vote
+    public void addVote() {
+        this.votes++;
+    }
+
+    // Reset votes for new round
+    public void resetVotes() {
+        this.votes = 0;
+    }
+}
